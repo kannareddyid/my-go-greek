@@ -27,7 +27,6 @@ const (
 	WorkflowID        = "sigma_email_workflow"
 	CronExpr          = "*/2 * * * *" // Every 2 minutes
 	ScheduleID        = "sigma-schedule-id"
-	ToEmailAddress    = "kanna.reddy@src.xyz"
 )
 
 func main() {
@@ -126,7 +125,7 @@ func main() {
 	// Create or update schedule
 	temporalClass := internal.NewTemporalClient(temporalClient)
 
-	err = temporalClass.CreateOrUpdateSchedule(ctx, ScheduleID, CronExpr, WorkflowID, "EmailWorkflow", TaskQueue, ToEmailAddress)
+	err = temporalClass.CreateOrUpdateSchedule(ctx, ScheduleID, CronExpr, WorkflowID, "EmailWorkflow", TaskQueue, toEmailAddress)
 	if err != nil {
 		log.Fatalf("Failed to create or update schedule: %v", err)
 	}
