@@ -18,8 +18,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
-
-	// "go.temporal.io/sdk/workflow"
 )
 
 const (
@@ -54,8 +52,8 @@ func main() {
 		"AWS_SES_SECRET_ACCESS_KEY": awsSesSecretAccessKey,
 		"TO_EMAIL_ADDRESS":         toEmailAddress,
 		"TEMPORAL_HOST_PORT":      temporalHostPort,
-		"TEMPORAL_NAMESPACE":    temporalNamespace,
-		"TEMPORAL_KEY":           temporalKey,
+		"TEMPORAL_NAMESPACE":      temporalNamespace,
+		"TEMPORAL_KEY":            temporalKey,
 	}
 	for key, value := range requiredEnvVars {
 		if value == "" {
@@ -99,14 +97,14 @@ func main() {
 
 	// Start the worker
 	w := worker.New(temporalClient, TaskQueue, worker.Options{})
-	// // Register workflow with updated signature
-	// w.RegisterWorkflowWithOptions(
-	// 	func(ctx workflow.Context, email string) error {
-	// 		return internal.EmailWorkflow(ctx, email, emailActivities)
-	// 	},
-	// 	workflow.RegisterOptions{Name: "EmailWorkflow"},
-	// )
+	
+	// SOLUTION 1: If you modified EmailWorkflow to not require activities parameter
 	w.RegisterWorkflow(internal.EmailWorkflow)
+	
+	// SOLUTION 2: If you created a separate ScheduledEmailWorkflow
+	// w.RegisterWorkflow(internal.EmailWorkflow)  // Keep for direct calls
+	// w.RegisterWorkflow(internal.ScheduledEmailWorkflow)  // For scheduled calls
+	
 	w.RegisterActivity(emailActivities)
 
 	// Channel to handle worker errors
@@ -125,7 +123,12 @@ func main() {
 	// Create or update schedule
 	temporalClass := internal.NewTemporalClient(temporalClient)
 
-	err = temporalClass.CreateOrUpdateSchedule(ctx, ScheduleID, CronExpr, WorkflowID, "EmailWorkflow", TaskQueue, toEmailAddress)
+	// SOLUTION 1: Use modified EmailWorkflow
+	// err = temporalClass.CreateOrUpdateSchedule(ctx, ScheduleID, CronExpr, WorkflowID, internal.EmailWorkflow, TaskQueue, toEmailAddress)
+	
+	// SOLUTION 2: Use ScheduledEmailWorkflow
+    err = temporalClass.CreateOrUpdateSchedule(ctx, ScheduleID, CronExpr, WorkflowID, internal.ScheduledEmailWorkflow, TaskQueue, toEmailAddress)
+	
 	if err != nil {
 		log.Fatalf("Failed to create or update schedule: %v", err)
 	}

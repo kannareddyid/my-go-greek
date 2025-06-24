@@ -23,7 +23,7 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 	scheduleID string,
 	cronExpression string,
 	workflowID string,
-	workflowName string, // Use string for registered workflow name
+	workflowFunc interface{}, // The actual workflow function, not a string
 	taskQueue string,
 	args ...interface{},
 ) error {
@@ -35,58 +35,57 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 	// Check if the schedule exists
 	_, err := scheduleHandle.Describe(ctx)
 	if err != nil {
+		// Schedule doesn't exist, create it
 		_, err = scheduleClient.Create(ctx, client.ScheduleOptions{
 			ID: scheduleID,
 			Spec: client.ScheduleSpec{
 				CronExpressions: []string{cronExpression},
 			},
 			Action: &client.ScheduleWorkflowAction{
-				Workflow:     workflowName, // Set to nil since we're using WorkflowName
-				ID:           workflowID,
-				TaskQueue:    taskQueue,
-				Args:         args,
+				Workflow:  workflowFunc, // Pass the actual workflow function
+				ID:        workflowID,
+				TaskQueue: taskQueue,
+				Args:      args,
 			},
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create schedule: %w", err)
 		}
-		log.Printf("Schedule %s created with workflow ID %s (note: Temporal may append timestamps to workflow ID)", scheduleID, workflowID)
+		log.Printf("Schedule %s created with workflow ID %s", scheduleID, workflowID)
 		return nil
 	}
 
-	// Define the update function
-	updateSchedule := func(input client.ScheduleUpdateInput) (*client.ScheduleUpdate, error) {
-		newSpec := client.ScheduleSpec{
-			CronExpressions: []string{cronExpression},
-		}
-
-		newState := client.ScheduleState{
-			Paused: false,
-		}
-
-		newAction := client.ScheduleWorkflowAction{
-			Workflow:     workflowName,
-			ID:           workflowID,
-			TaskQueue:    taskQueue,
-			Args:         args,
-		}
-
-		return &client.ScheduleUpdate{
-			Schedule: &client.Schedule{
-				Spec:   &newSpec,
-				State:  &newState,
-				Action: &newAction,
-			},
-		}, nil
-	}
-
-	// Apply the update
+	// Schedule exists, update it
 	err = scheduleHandle.Update(ctx, client.ScheduleUpdateOptions{
-		DoUpdate: updateSchedule,
+		DoUpdate: func(input client.ScheduleUpdateInput) (*client.ScheduleUpdate, error) {
+			// Create new schedule configuration using a pointer to the existing schedule
+			// schedule := input.Description.Schedule
+			
+			// Create updated schedule with new configuration
+			updatedSchedule := &client.Schedule{
+				Spec: &client.ScheduleSpec{
+					CronExpressions: []string{cronExpression},
+				},
+				State: &client.ScheduleState{
+					Paused: false,
+				},
+				Action: &client.ScheduleWorkflowAction{
+					Workflow:  workflowFunc,
+					ID:        workflowID,
+					TaskQueue: taskQueue,
+					Args:      args,
+				},
+			}
+
+			return &client.ScheduleUpdate{
+				Schedule: updatedSchedule,
+			}, nil
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update schedule: %w", err)
 	}
-	log.Printf("Schedule %s updated with workflow ID %s (note: Temporal may append timestamps to workflow ID)", scheduleID, workflowID)
+	
+	log.Printf("Schedule %s updated with workflow ID %s", scheduleID, workflowID)
 	return nil
 }
