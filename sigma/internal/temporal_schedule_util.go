@@ -9,11 +9,13 @@ import (
 
 type TemporalClass struct {
 	temporalClient client.Client
+	emailWorkflowClass EmailWorkflowClass 
 }
 
-func NewTemporalClient(temporalClientDi client.Client) *TemporalClass {
+func NewTemporalClient(temporalClientDi client.Client, emailWorkflowClassDi EmailWorkflowClass) *TemporalClass {
 	return &TemporalClass{
 		temporalClient: temporalClientDi,
+		emailWorkflowClass: emailWorkflowClassDi,
 	}
 }
 
@@ -23,7 +25,6 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 	scheduleID string,
 	cronExpression string,
 	workflowID string,
-	workflowFunc interface{},
 	taskQueue string,
 	args ...interface{},
 ) error {
@@ -42,7 +43,7 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 				CronExpressions: []string{cronExpression},
 			},
 			Action: &client.ScheduleWorkflowAction{
-				Workflow:  workflowFunc,
+				Workflow:  tc.emailWorkflowClass.EmailWorkflow,
 				ID:        workflowID,
 				TaskQueue: taskQueue,
 				Args:      args,
@@ -78,7 +79,7 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 				State:  currentSchedule.State,
 
 				Action: &client.ScheduleWorkflowAction{
-					Workflow:  workflowFunc,
+					Workflow:  tc.emailWorkflowClass.EmailWorkflow,
 					ID:        workflowID,
 					TaskQueue: taskQueue,
 					Args:      args,
