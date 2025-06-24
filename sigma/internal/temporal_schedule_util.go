@@ -43,7 +43,7 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 				CronExpressions: []string{cronExpression},
 			},
 			Action: &client.ScheduleWorkflowAction{
-				Workflow:  tc.emailWorkflowClass.EmailWorkflow,
+				Workflow:  tc.emailWorkflowClass.EmailWorkflow, //"EmailWorkflow",
 				ID:        workflowID,
 				TaskQueue: taskQueue,
 				Args:      args,
@@ -71,7 +71,6 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 				Spec: &client.ScheduleSpec{
 					CronExpressions: []string{cronExpression},
 				},
-				
 				// State: &client.ScheduleState{
 				// 	Paused: false,
 				// },
@@ -79,7 +78,7 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 				State:  currentSchedule.State,
 
 				Action: &client.ScheduleWorkflowAction{
-					Workflow:  tc.emailWorkflowClass.EmailWorkflow,
+					Workflow:  tc.emailWorkflowClass.EmailWorkflow, //"EmailWorkflow",
 					ID:        workflowID,
 					TaskQueue: taskQueue,
 					Args:      args,

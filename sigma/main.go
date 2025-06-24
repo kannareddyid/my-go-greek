@@ -121,7 +121,7 @@ func main() {
 	temporalClass := internal.NewTemporalClient(temporalClient, *emailWorkflowClass)
 
 	// SOLUTION 1: Use modified EmailWorkflow
-	err = temporalClass.CreateOrUpdateSchedule(ctx, ScheduleID, CronExpr, WorkflowID, TaskQueue, toEmailAddress	)
+	err = temporalClass.CreateOrUpdateSchedule(ctx, ScheduleID, CronExpr, WorkflowID, TaskQueue)
 
 	if err != nil {
 		log.Fatalf("Failed to create or update schedule: %v", err)
