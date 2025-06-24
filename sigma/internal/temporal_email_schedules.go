@@ -71,6 +71,7 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 				Spec: &client.ScheduleSpec{
 					CronExpressions: []string{cronExpression},
 				},
+				
 				// State: &client.ScheduleState{
 				// 	Paused: false,
 				// },
