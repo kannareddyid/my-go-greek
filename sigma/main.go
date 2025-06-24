@@ -100,8 +100,9 @@ func main() {
 	w := worker.New(temporalClient, TaskQueue, worker.Options{})
 	
 	// SOLUTION 1: If you modified EmailWorkflow to not require activities parameter
-	w.RegisterWorkflow(emailWorkflowClass)
-	w.RegisterActivity(emailActivityClass)
+	w.RegisterWorkflow(emailWorkflowClass.EmailWorkflow)
+	w.RegisterActivity(emailActivityClass.SendScheduledEmail1)
+	w.RegisterActivity(emailActivityClass.SendScheduledEmail2)
 
 	// Channel to handle worker errors
 	workerErr := make(chan error, 1)
