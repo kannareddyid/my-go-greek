@@ -78,9 +78,9 @@ func main() {
 		log.Fatalf("unable to load AWS config: %v", err)
 	}
 	sesClient := ses.NewFromConfig(awsSesCfg)
-	awsSesClass := internal.NewAwsSesClass(ctx, sesClient)
-	emailActivityClass := internal.NewEmailActivityClass(ctx, awsSesClass)
-	emailWorkflowClass := internal.NewEmailWorkflowClass(ctx, toEmailAddress, emailActivityClass)
+	awsSesClass := internal.NewAwsSesClass(sesClient)
+	emailActivityClass := internal.NewEmailActivityClass(awsSesClass)
+	emailWorkflowClass := internal.NewEmailWorkflowClass(toEmailAddress, emailActivityClass)
 
 	// Connect to Temporal Cloud
 	temporalClient, err := client.Dial(client.Options{

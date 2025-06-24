@@ -2,7 +2,6 @@
 package internal
 
 import (
-	"context"
 	"time"
 
 	"go.temporal.io/sdk/temporal"
@@ -14,7 +13,7 @@ type EmailWorkflowClass struct {
 	emailActivityClass *EmailActivityClass
 }
 
-func NewEmailWorkflowClass(ctx context.Context, toEmailDi string, emailActivityClassDi *EmailActivityClass) *EmailWorkflowClass {
+func NewEmailWorkflowClass(toEmailDi string, emailActivityClassDi *EmailActivityClass) *EmailWorkflowClass {
 	return &EmailWorkflowClass{
 		toEmailAddress: toEmailDi,
 		emailActivityClass: emailActivityClassDi,

@@ -9,7 +9,7 @@ type EmailActivityClass struct {
 	sesClient *AwsSesClass
 }
 
-func NewEmailActivityClass(ctx context.Context, awsSesClassDi *AwsSesClass) *EmailActivityClass {
+func NewEmailActivityClass(awsSesClassDi *AwsSesClass) *EmailActivityClass {
 	return &EmailActivityClass{
 		sesClient: awsSesClassDi,
 	}

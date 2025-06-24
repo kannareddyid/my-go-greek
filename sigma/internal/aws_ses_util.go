@@ -18,7 +18,7 @@ type AwsSesClass struct {
 	sesClient *ses.Client
 }
 
-func NewAwsSesClass(ctx context.Context, sesClientDi *ses.Client) *AwsSesClass {
+func NewAwsSesClass(sesClientDi *ses.Client) *AwsSesClass {
 	return &AwsSesClass{
 		sesClient: sesClientDi,
 	}
