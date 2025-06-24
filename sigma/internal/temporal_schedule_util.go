@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-
 	"go.temporal.io/sdk/client"
 )
 
@@ -19,11 +18,12 @@ func NewTemporalClient(temporalClientDi client.Client) *TemporalClass {
 }
 
 func (tc *TemporalClass) CreateOrUpdateSchedule(
+// CreateOrUpdateSchedule creates a new schedule or updates an existing one.
 	ctx context.Context,
 	scheduleID string,
 	cronExpression string,
 	workflowID string,
-	workflowFunc interface{}, // The actual workflow function, not a string
+	workflowFunc interface{},
 	taskQueue string,
 	args ...interface{},
 ) error {
@@ -42,7 +42,7 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 				CronExpressions: []string{cronExpression},
 			},
 			Action: &client.ScheduleWorkflowAction{
-				Workflow:  workflowFunc, // Pass the actual workflow function
+				Workflow:  workflowFunc,
 				ID:        workflowID,
 				TaskQueue: taskQueue,
 				Args:      args,
@@ -51,30 +51,41 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 		if err != nil {
 			return fmt.Errorf("failed to create schedule: %w", err)
 		}
-		log.Printf("Schedule %s created with workflow ID %s", scheduleID, workflowID)
+		log.Printf("Schedule %s created", scheduleID)
 		return nil
 	}
 
 	// Schedule exists, update it
 	err = scheduleHandle.Update(ctx, client.ScheduleUpdateOptions{
 		DoUpdate: func(input client.ScheduleUpdateInput) (*client.ScheduleUpdate, error) {
-			// Create new schedule configuration using a pointer to the existing schedule
-			// schedule := input.Description.Schedule
-			
-			// Create updated schedule with new configuration
+			// Get the current schedule, but create a new one to avoid modifying the original
+			currentSchedule := input.Description.Schedule
+			// Check if currentSchedule is the zero value
+			if currentSchedule == (client.Schedule{}) {
+				return nil, fmt.Errorf("current schedule is zero value")
+			}
+
+			// Create a new schedule structure with updated values
 			updatedSchedule := &client.Schedule{
 				Spec: &client.ScheduleSpec{
 					CronExpressions: []string{cronExpression},
 				},
-				State: &client.ScheduleState{
-					Paused: false,
-				},
+				
+				// State: &client.ScheduleState{
+				// 	Paused: false,
+				// },
+				
+				State:  currentSchedule.State,
+
 				Action: &client.ScheduleWorkflowAction{
 					Workflow:  workflowFunc,
 					ID:        workflowID,
 					TaskQueue: taskQueue,
 					Args:      args,
 				},
+				
+				// Preserve other fields from the current schedule
+				Policy: currentSchedule.Policy,
 			}
 
 			return &client.ScheduleUpdate{
@@ -85,7 +96,6 @@ func (tc *TemporalClass) CreateOrUpdateSchedule(
 	if err != nil {
 		return fmt.Errorf("failed to update schedule: %w", err)
 	}
-	
-	log.Printf("Schedule %s updated with workflow ID %s", scheduleID, workflowID)
+	log.Printf("Schedule %s updated", scheduleID)
 	return nil
 }
