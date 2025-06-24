@@ -80,6 +80,7 @@ func main() {
 	sesClient := ses.NewFromConfig(awsSesCfg)
 	awsSesClass := internal.NewAwsSesClass(ctx, sesClient)
 	emailActivities := internal.NewEmailActivityClass(ctx, awsSesClass)
+	emailWorkflow := internal.NewEmailWorkflowClass(ctx, toEmailAddress, emailActivities)
 
 	// Connect to Temporal Cloud
 	temporalClient, err := client.Dial(client.Options{
@@ -99,12 +100,7 @@ func main() {
 	w := worker.New(temporalClient, TaskQueue, worker.Options{})
 	
 	// SOLUTION 1: If you modified EmailWorkflow to not require activities parameter
-	w.RegisterWorkflow(internal.EmailWorkflow)
-	
-	// SOLUTION 2: If you created a separate ScheduledEmailWorkflow
-	// w.RegisterWorkflow(internal.EmailWorkflow)  // Keep for direct calls
-	// w.RegisterWorkflow(internal.ScheduledEmailWorkflow)  // For scheduled calls
-	
+	w.RegisterWorkflow(emailWorkflow)
 	w.RegisterActivity(emailActivities)
 
 	// Channel to handle worker errors
@@ -124,10 +120,10 @@ func main() {
 	temporalClass := internal.NewTemporalClient(temporalClient)
 
 	// SOLUTION 1: Use modified EmailWorkflow
-	// err = temporalClass.CreateOrUpdateSchedule(ctx, ScheduleID, CronExpr, WorkflowID, internal.EmailWorkflow, TaskQueue, toEmailAddress)
+	err = temporalClass.CreateOrUpdateSchedule(ctx, ScheduleID, CronExpr, WorkflowID, emailWorkflow.EmailWorkflow, TaskQueue, toEmailAddress	)
 	
 	// SOLUTION 2: Use ScheduledEmailWorkflow
-    err = temporalClass.CreateOrUpdateSchedule(ctx, ScheduleID, CronExpr, WorkflowID, internal.ScheduledEmailWorkflow, TaskQueue, toEmailAddress)
+    //err = temporalClass.CreateOrUpdateSchedule(ctx, ScheduleID, CronExpr, WorkflowID, internal.ScheduledEmailWorkflow, TaskQueue, toEmailAddress)
 	
 	if err != nil {
 		log.Fatalf("Failed to create or update schedule: %v", err)

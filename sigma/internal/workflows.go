@@ -2,16 +2,29 @@
 package internal
 
 import (
+	"context"
 	"time"
 
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
+type EmailWorkflowClass struct {
+	toEmailAddress string
+	emailActivityClass *EmailActivityClass
+}
+
+func NewEmailWorkflowClass(ctx context.Context, toEmailDi string, emailActivityClassDi *EmailActivityClass) *EmailWorkflowClass {
+	return &EmailWorkflowClass{
+		toEmailAddress: toEmailDi,
+		emailActivityClass: emailActivityClassDi,
+	}
+}
+
 // Keep your original workflow
-func EmailWorkflow(ctx workflow.Context, email string, activities *EmailActivityClass) error {
+func (ew *EmailWorkflowClass) EmailWorkflow(ctx workflow.Context) error {
 	logger := workflow.GetLogger(ctx)
-	logger.Info("Starting EmailWorkflow", "email", email)
+	logger.Info("Starting EmailWorkflow", "email", ew.toEmailAddress)
 
 	// Define activity options with proper timeouts
 	ao := workflow.ActivityOptions{
@@ -28,8 +41,8 @@ func EmailWorkflow(ctx workflow.Context, email string, activities *EmailActivity
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	// Execute activities concurrently using futures
-	future1 := workflow.ExecuteActivity(ctx, activities.SendScheduledEmail1, email)
-	future2 := workflow.ExecuteActivity(ctx, activities.SendScheduledEmail2, email)
+	future1 := workflow.ExecuteActivity(ctx, ew.emailActivityClass.SendScheduledEmail1, ew.toEmailAddress)
+	future2 := workflow.ExecuteActivity(ctx, ew.emailActivityClass.SendScheduledEmail2, ew.toEmailAddress)
 
 	// Wait for both activities to complete
 	var err1, err2 error
