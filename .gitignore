@@ -1,0 +1,60 @@
+# Go build artifacts
+/bin/
+/pkg/
+/out/
+/dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+.env.local
+
+# Dependency directories
+/vendor/
+/go.mod
+/go.sum
+
+# Go workspace file
+go.work
+
+# Temporary files
+*.log
+*.tmp
+*.swp
+*~
+
+# VSCode-specific files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history/
+
+# Visual Studio-specific files (if using Visual Studio)
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.csproj
+*.vbproj
+*.dbmdl
+*.publishsettings
+*.cache
+*.pdb
+bin/
+obj/
+Debug/
+Release/
+
+# macOS-specific
+.DS_Store
+
+# Windows-specific
+Thumbs.db
